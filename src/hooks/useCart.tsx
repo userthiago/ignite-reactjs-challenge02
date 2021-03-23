@@ -52,7 +52,7 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
               title: product.title,
               image: product.image,
               amount: product.amount + 1,
-              price: product.price * (product.amount + 1),
+              price: product.price,
             }
           }
           return product;
