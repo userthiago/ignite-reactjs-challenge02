@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useState } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { api } from '../services/api';
 import { Product, Stock } from '../types';
@@ -32,11 +32,39 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     return [];
   });
 
+  useEffect(() => {
+    console.log(cart);
+  }, [cart]);
+
   const addProduct = async (productId: number) => {
     try {
-      // TODO
+      const productStock = await api.get(`/stock/${productId}`).then(response => response.data);
+      const productInCart: Product | undefined = cart.find((product) => product.id === productId);
+
+      if(productStock.amount === 0 || (productInCart && productStock.amount <= productInCart.amount)) {
+        toast.error('Quantidade solicitada fora de estoque');
+      }
+      else if(productInCart) {
+        const newCart = cart.map(product => {
+          if(product.id === productInCart.id) {
+            return {
+              id: product.id,
+              title: product.title,
+              image: product.image,
+              amount: product.amount + 1,
+              price: product.price * (product.amount + 1),
+            }
+          }
+          return product;
+        });
+
+        setCart(newCart);
+      } else {
+        const product = await api.get(`/products/${productId}`).then(response => response.data);
+        setCart([...cart, { ...product, amount: 1 }]);
+      }
     } catch {
-      // TODO
+      toast.error('Erro na adição do produto');
     }
   };
 
