@@ -30,12 +30,8 @@ const Home = (): JSX.Element => {
   // }, {} as CartItemsAmount)
 
   useEffect(() => {
-    api.get('/products').then((response) => setProducts(response.data));
-  }, []);
-
-  useEffect(() => {
     async function loadProducts() {
-      // TODO
+      api.get('/products').then((response) => setProducts(response.data));
     }
 
     loadProducts();
