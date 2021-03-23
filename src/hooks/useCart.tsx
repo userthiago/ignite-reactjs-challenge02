@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { api } from '../services/api';
@@ -70,9 +71,10 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
   const removeProduct = (productId: number) => {
     try {
-      // TODO
+      const newCart = cart.filter(product => product.id !== productId);
+      setCart(newCart);
     } catch {
-      // TODO
+      toast.error('Erro na remoção do produto');
     }
   };
 
@@ -81,9 +83,29 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     amount,
   }: UpdateProductAmount) => {
     try {
-      // TODO
+      const productStock = await api.get(`/stock/${productId}`).then(response => response.data);
+      const productInCart: Product | undefined = cart.find((product) => product.id === productId);
+
+      if(productInCart){
+        if(productInCart.amount + amount >= 1 && productInCart.amount + amount <= productStock.amount) {
+          const newCart = cart.map(product => {
+            if(product.id === productInCart.id) {
+              return {
+                ...productInCart,
+                amount: productInCart.amount + amount
+              };
+            }
+
+            return product;
+          });
+
+          setCart(newCart);
+        } else {
+          toast.error('Quantidade solicitada fora de estoque');
+        }
+      }
     } catch {
-      // TODO
+      toast.error('Erro na alteração de quantidade do produto');
     }
   };
 
